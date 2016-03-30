@@ -2,6 +2,11 @@
 # 
 # tournament.py -- implementation of a Swiss-system tournament
 #
+# db = connect()
+# c  = db.cursor()
+# c.execute(query,options)
+# db.commit()
+# db.close()
 
 import psycopg2
 
@@ -13,14 +18,34 @@ def connect():
 
 def deleteMatches():
     """Remove all the match records from the database."""
+    query = "delete from matches;"
+    db = connect()
+    c  = db.cursor()
+    c.execute(query)
+    db.commit()
+    db.close()
 
 
 def deletePlayers():
     """Remove all the player records from the database."""
+    query = "delete from players;"
+    db = connect()
+    c  = db.cursor()
+    c.execute(query)
+    db.commit()
+    db.close()
 
 
 def countPlayers():
     """Returns the number of players currently registered."""
+    query = "select count(*) as num from players;"
+    db = connect()
+    c  = db.cursor()
+    c.execute(query)
+    num = c.fetchall()[0][0]
+    db.close()
+    print(num)
+    return num
 
 
 def registerPlayer(name):
@@ -32,6 +57,11 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
+    db = connect()
+    c  = db.cursor()
+    c.execute("insert into players (name, wins) values (%s,0)",(name,))
+    db.commit()
+    db.close()
 
 
 def playerStandings():
@@ -47,6 +77,14 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
+    query = "select * from players where wins = (select max(wins) as mp from players);"
+    db = connect()
+    c  = db.cursor()
+    c.execute(query)
+    standing = c.fetchall()
+    db.close()
+    print(standing)
+    return standing
 
 
 def reportMatch(winner, loser):
@@ -56,6 +94,14 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
+    db = connect()
+    c  = db.cursor()
+    c.execute("update players set wins = 1 where id=%s",
+            (winner,))
+    c.execute("insert into matches (winner,loser) values (%s,%s);",
+            (winner,loser))
+    db.commit()
+    db.close()
  
  
 def swissPairings():
@@ -73,5 +119,35 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    query = """
+    select * from players order by wins;
+    """
+    db = connect()
+    c  = db.cursor()
+    c.execute(query)
+    list = c.fetchall()
+    pairs = []
+    for i in range(0,len(list),2):
+        pairs.append((list[i][0],list[i][1],list[i+1][0],list[i+1][1]))
+    db.close()
+    print(pairs)
+    return pairs
+
+
+
+if __name__ == "__main__":
+
+    registerPlayer('Will')
+    registerPlayer('Gill')
+    registerPlayer('Billy')
+    registerPlayer('Nilly')
+    playerStandings()
+    swissPairings()
+
+    reportMatch(1,2)
+    reportMatch(3,4)
+    swissPairings()
+    playerStandings()
+
 
 
