@@ -44,22 +44,22 @@ def countPlayers():
     c.execute(query)
     num = c.fetchall()[0][0]
     db.close()
-    print(num)
+    #print(num)
     return num
 
 
 def registerPlayer(name):
     """Adds a player to the tournament database.
-  
+
     The database assigns a unique serial id number for the player.  (This
     should be handled by your SQL database schema, not in your Python code.)
-  
+
     Args:
       name: the player's full name (need not be unique).
     """
     db = connect()
     c  = db.cursor()
-    c.execute("insert into players (name, wins) values (%s,0)",(name,))
+    c.execute("insert into players (name) values (%s)",(name,))
     db.commit()
     db.close()
 
@@ -77,13 +77,16 @@ def playerStandings():
         wins: the number of matches the player has won
         matches: the number of matches the player has played
     """
-    query = "select * from players where wins = (select max(wins) as mp from players);"
+    #query = "select id, name, wins, wins as matches from players where wins = (select max(wins) as mp from players);"
+    query  = """
+    select m.id, m.name,w.wins, m.match from (select id, name, count(idm) as match from players left join matches on (id = winner or id = loser) group by id) as m, (select id, count(idm) as wins from players left join matches on (id = winner) group by id) as w where w.id = m.id;
+    """
     db = connect()
     c  = db.cursor()
     c.execute(query)
     standing = c.fetchall()
     db.close()
-    print(standing)
+    #print(standing)
     return standing
 
 
@@ -96,8 +99,8 @@ def reportMatch(winner, loser):
     """
     db = connect()
     c  = db.cursor()
-    c.execute("update players set wins = 1 where id=%s",
-            (winner,))
+    #c.execute("update players set wins = 1 where id=%s",
+    #        (winner,))
     c.execute("insert into matches (winner,loser) values (%s,%s);",
             (winner,loser))
     db.commit()
@@ -119,8 +122,19 @@ def swissPairings():
         id2: the second player's unique id
         name2: the second player's name
     """
+    query  = """
+    drop view if exists pairings;
+    create view pairings as select m.id, m.name,w.wins, m.match from (select id, name, count(idm) as match from players left join matches on (id = winner or id = loser) group by id) as m, (select id, count(idm) as wins from players left join matches on (id = winner) group by id) as w where w.id = m.id;
+    """
+    db = connect()
+    c  = db.cursor()
+    c.execute(query)
+    db.commit()
+    db.close()
+
+
     query = """
-    select * from players order by wins;
+    select * from pairings order by wins;
     """
     db = connect()
     c  = db.cursor()
@@ -130,7 +144,6 @@ def swissPairings():
     for i in range(0,len(list),2):
         pairs.append((list[i][0],list[i][1],list[i+1][0],list[i+1][1]))
     db.close()
-    print(pairs)
     return pairs
 
 
@@ -146,8 +159,8 @@ if __name__ == "__main__":
 
     reportMatch(1,2)
     reportMatch(3,4)
-    swissPairings()
     playerStandings()
+    swissPairings()
 
 
 
