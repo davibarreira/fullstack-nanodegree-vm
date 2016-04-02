@@ -21,13 +21,13 @@ session = DBSession()
 class webServerHandler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
-            restaurant_names = session.query(Restaurant).order_by('name')
             if self.path.endswith("/restaurant"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
                 message = ""
                 message += "<html><body><h1>Hello! Welcome to the Restaurant Database</h1>"
+                restaurant_names = session.query(Restaurant).order_by('name')
                 for i,names in enumerate(restaurant_names):
                     message += "<h2>"+names.name+"</h2>"
                     message += "<ul>"
@@ -47,7 +47,7 @@ class webServerHandler(BaseHTTPRequestHandler):
                 restaurant_names = session.query(Restaurant).order_by('name')
                 message = ""
                 message += "<html><body><h1>Make a new Restaurant</h1>"
-                message += "<form method='POST' enctype='multipart/form-data' action='/restaurant'><h2>Insert name</h2><input name='message' type='text'><input type='submit' value='Create'></form>"
+                message += "<form method='POST' enctype='multipart/form-data' action='makenewrestaurant'><h2>Insert name</h2><input name='message' type='text'><input type='submit' value='Create'></form>"
                 message += "</body></html>"
                 self.wfile.write(message)
                 return
@@ -61,7 +61,21 @@ class webServerHandler(BaseHTTPRequestHandler):
                 restaurant_names = session.query(Restaurant).order_by('name')
                 message = ""
                 message += "<html><body><h1>%s</h1>" % restaurant_names[int(index)].name
-                message += "<form method='POST' enctype='multipart/form-data' action='make'><h2>Insert new name</h2><input name='message' type='text'><input type='submit' value='Edit'></form>"
+                message += "<form method='POST' enctype='multipart/form-data' action='edit'><h2>Insert new name</h2><input name='message' type='text'><input type='submit' value='Edit'></form>"
+                message += "</body></html>"
+                self.wfile.write(message)
+                return
+
+            # Delete
+            if re.findall(r'(restaurant/\d+\/delete)',self.path):
+                index = re.findall(r'restaurant/(\d+)\/delete',self.path)[0]
+                self.send_response(200)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                restaurant_names = session.query(Restaurant).order_by('name')
+                message = ""
+                message += "<html><body><h1>Are you sure you want to delete %s ?</h1>" % restaurant_names[int(index)].name
+                message += "<form method='POST' enctype='multipart/form-data' action='delete'><input type='submit' value='Delete'></form>"
                 message += "</body></html>"
                 self.wfile.write(message)
                 return
@@ -80,16 +94,30 @@ class webServerHandler(BaseHTTPRequestHandler):
                     fields=cgi.parse_multipart(self.rfile, pdict)
                     messagecontent = fields.get('message')
 
-            restaurant_new = Restaurant(name = messagecontent[0])
-            session.add(restaurant_new)
-            session.commit()
+            if self.path.endswith("/makenewrestaurant"):
+                restaurant_new = Restaurant(name = messagecontent[0])
+                session.add(restaurant_new)
+                session.commit()
+
+            if self.path.endswith("/edit"):
+                restaurant_names = session.query(Restaurant).order_by('name')
+                var= re.findall(r'restaurant/(\d+)\/edit',self.path)
+                var= int(var[0])
+                restaurant_names[var].name = messagecontent[0]
+                session.commit()
+
+            if self.path.endswith("/delete"):
+                restaurant_names = session.query(Restaurant).order_by('name')
+                var= re.findall(r'restaurant/(\d+)\/delete',self.path)
+                var= int(var[0])
+                delete_element = restaurant_names[var]
+                session.delete(delete_element)
+                session.commit()
 
             output = ""
 
             output +=  "<html><body>"
-            output += " <h2> Okay, restaurant added. <a href='/restaurant'>Go back</a>?</h2>"
-
-            output += "<form method='POST' enctype='multipart/form-data' action='make'><h2>Add new one?</h2><input name='message' type='text'><input type='submit' value='Create'></form>"
+            output += " <h2><a href='/restaurant'>Go back</a>?</h2>"
 
             output += "</html></body>"
 
