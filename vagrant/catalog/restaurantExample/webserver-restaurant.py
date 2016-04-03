@@ -27,6 +27,7 @@ class webServerHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 message = ""
                 message += "<html><body><h1>Hello! Welcome to the Restaurant Database</h1>"
+                message += "<a href='restaurant/new'><h1>Make New Restaurant</h1></a>"
                 restaurant_names = session.query(Restaurant).order_by('name')
                 for i,names in enumerate(restaurant_names):
                     message += "<h2>"+names.name+"</h2>"
@@ -35,19 +36,18 @@ class webServerHandler(BaseHTTPRequestHandler):
                     message += "<li><a href='/restaurant/%s/delete'>Delete</a></li>" % i
                     message += "</ul>"
 
-                message += "<a href='restaurant/makenewrestaurant'><h1>Make New Restaurant</h1></a>"
                 message += "</body></html>"
                 self.wfile.write(message)
                 return
 
-            if self.path.endswith("/makenewrestaurant"):
+            if self.path.endswith("/new"):
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
                 restaurant_names = session.query(Restaurant).order_by('name')
                 message = ""
                 message += "<html><body><h1>Make a new Restaurant</h1>"
-                message += "<form method='POST' enctype='multipart/form-data' action='makenewrestaurant'><h2>Insert name</h2><input name='message' type='text'><input type='submit' value='Create'></form>"
+                message += "<form method='POST' enctype='multipart/form-data' action='new'><h2>Insert name</h2><input name='message' type='text'><input type='submit' value='Create'></form>"
                 message += "</body></html>"
                 self.wfile.write(message)
                 return
@@ -86,15 +86,19 @@ class webServerHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         try:
-            self.send_response(301)
-            self.end_headers()
+            # self.send_response(301)
+            # self.end_headers()
 
             ctype, pdict = cgi.parse_header(self.headers.getheader('content-type'))
             if ctype == 'multipart/form-data':
                     fields=cgi.parse_multipart(self.rfile, pdict)
                     messagecontent = fields.get('message')
+                    self.send_response(301)
+                    self.send_header('Content-type', 'text/html')
+                    self.send_header('Location', '/restaurant')
+                    self.end_headers()
 
-            if self.path.endswith("/makenewrestaurant"):
+            if self.path.endswith("/new"):
                 restaurant_new = Restaurant(name = messagecontent[0])
                 session.add(restaurant_new)
                 session.commit()
