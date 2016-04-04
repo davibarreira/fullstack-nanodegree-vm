@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Edit Menu Item</title>
+            <link rel="stylesheet" href="{{ url_for('static',filename='bootstrap.min.css') }}">
+            <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}" type=text/css>
+            
+            <link rel="stylesheet" href="{{ url_for('static',filename='jquery-2.2.2.min.js') }}">
+
+            <script type="text/javascript" src="{{ url_for('static',filename='jquery-2.2.2.min.js') }}"></script>
+            <script type="text/javascript" src="{{ url_for('static',filename='bootstrap.min.js') }}"></script>
+    </head>
+
+<body>
+    <h1>Edit Menu Item</h1>
+
+    <form action="{{ url_for('editMenuItem',restaurant_id=restaurant_id, menu_id=menu_id) }}" method="post" accept-charset="utf-8">
+        <p>Name:</p>
+        <input type="text" name="name" size="30" placeholder='{{editItem.name}}'>
+        <input type="submit" value="Edit">
+        <a href= "{{  url_for('restaurantMenu',restaurant_id=restaurant_id) }}">Cancel</a>
+    </form>
+
+
+
+</body>
+</html>
