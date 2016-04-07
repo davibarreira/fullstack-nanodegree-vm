@@ -11,6 +11,15 @@ class Restaurant(Base):
     id            = Column(Integer, primary_key = True)
     name          = Column(String(250), nullable = False)
 
+    @property
+    def serialize(self):
+        """TODO: Returns object data in serialized way.
+        :returns: TODO
+        """
+        return {
+                'name': self.name,
+                }
+
 class MenuItem(Base):
 
     """Docstring for MenuItem. """

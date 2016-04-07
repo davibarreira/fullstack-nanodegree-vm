@@ -1,26 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>New Menu Item</title>
-        <link rel="stylesheet" href="{{ url_for('static',filename='bootstrap.min.css') }}">
-        <link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}" type=text/css>
-        
-        <link rel="stylesheet" href="{{ url_for('static',filename='jquery-2.2.2.min.js') }}">
-
-        <script type="text/javascript" src="{{ url_for('static',filename='jquery-2.2.2.min.js') }}"></script>
-        <script type="text/javascript" src="{{ url_for('static',filename='bootstrap.min.js') }}"></script>
+{% extends "layout.html" %}
+{% block title %}Index{% endblock %}
+{% block content %}
 
 
-</head>
-<body>
-    <h1>New Menu Item</h1>
+<div class='row'>
+    </br>
+    <div class='jumbotron'>
+    <h1 class='title-welcome'>New Menu Item</h1>
 
-    <form action="{{ url_for('newMenuItem',restaurant_id=restaurant_id) }}" method="post" accept-charset="utf-8">
+    <form class='form-inline' action="{{ url_for('newMenuItem',restaurant_id=restaurant_id) }}" method="post" accept-charset="utf-8">
         <p>Name:</p>
-        <input type="text" name="name" size="30">
-        <input type="submit" value="Create">
+        <input type="text" name="name" class='form-control' size="30">
+        <button type="submit" class="btn btn-primary" id="submit" type="submit">Create</button>
     </form>
 
+    </div>
+</div>
 
-</body>
-</html>
+{% endblock %}

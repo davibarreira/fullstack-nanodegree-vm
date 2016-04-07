@@ -11,6 +11,10 @@ session = DBSession()
 
 app = Flask(__name__)
 
+@app.route('/restaurant/json')
+def restaurantJson():
+    restaurant = session.query(Restaurant).all()
+    return jsonify(RestaurantList=[i.serialize for i in restaurant])
 
 @app.route('/restaurant/<int:restaurant_id>/menu/json')
 def restaurantMenuJson(restaurant_id):
@@ -29,6 +33,7 @@ def restaurantMenuItemJson(restaurant_id, menu_id):
 
 
 @app.route('/')
+@app.route('/restaurant/')
 def HomePage():
     restaurant = session.query(Restaurant).all()
     return render_template('home.html',restaurant=restaurant)
@@ -72,6 +77,7 @@ def deleteRestaurant(restaurant_id):
         return render_template('deleterestaurant.html',restaurant_id=restaurant_id, restaurantdel=restaurantdel)
 
 @app.route('/restaurant/<int:restaurant_id>/')
+@app.route('/restaurant/<int:restaurant_id>/menu/')
 def restaurantMenu(restaurant_id):
     restaurant = session.query(Restaurant).filter_by(id=restaurant_id).one()
     item       = session.query(MenuItem).filter_by(restaurant_id=restaurant.id)
